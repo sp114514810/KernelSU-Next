@@ -54,7 +54,7 @@ static void stop_vfs_read_hook();
 static void stop_execve_hook();
 static void stop_input_hook();
 
-#ifdef CONFIG_KPROBES
+#if defined(CONFIG_KPROBES) && 0
 static struct work_struct stop_vfs_read_work;
 static struct work_struct stop_execve_hook_work;
 static struct work_struct stop_input_hook_work;
@@ -66,15 +66,15 @@ bool ksu_input_hook __read_mostly = true;
 
 u32 ksu_devpts_sid;
 
-void on_post_fs_data(void)
+void ksu_on_post_fs_data(void)
 {
 	static bool done = false;
 	if (done) {
-		pr_info("on_post_fs_data already done\n");
+		pr_info("ksu_on_post_fs_data already done\n");
 		return;
 	}
 	done = true;
-	pr_info("on_post_fs_data!\n");
+	pr_info("ksu_on_post_fs_data!\n");
 	ksu_load_allow_list();
 	// sanity check, this may influence the performance
 	stop_input_hook();
@@ -197,7 +197,7 @@ int ksu_handle_execveat_ksud(int *fd, struct filename **filename_ptr,
 					first_arg);
 				if (!strcmp(first_arg, "second_stage")) {
 					pr_info("/system/bin/init second_stage executed\n");
-					apply_kernelsu_rules();
+					ksu_apply_kernelsu_rules();
 					init_second_stage_executed = true;
 					ksu_android_ns_fs_check();
 				}
@@ -221,7 +221,7 @@ int ksu_handle_execveat_ksud(int *fd, struct filename **filename_ptr,
 				pr_info("/init first arg: %s\n", first_arg);
 				if (!strcmp(first_arg, "--second-stage")) {
 					pr_info("/init second_stage executed\n");
-					apply_kernelsu_rules();
+					ksu_apply_kernelsu_rules();
 					init_second_stage_executed = true;
 					ksu_android_ns_fs_check();
 				}
@@ -258,7 +258,7 @@ int ksu_handle_execveat_ksud(int *fd, struct filename **filename_ptr,
 					    (!strcmp(env_value, "1") ||
 					     !strcmp(env_value, "true"))) {
 						pr_info("/init second_stage executed\n");
-						apply_kernelsu_rules();
+						ksu_apply_kernelsu_rules();
 						init_second_stage_executed =
 							true;
 						ksu_android_ns_fs_check();
@@ -273,7 +273,7 @@ int ksu_handle_execveat_ksud(int *fd, struct filename **filename_ptr,
 		first_app_process = false;
 		pr_info("exec app_process, /data prepared, second_stage: %d\n",
 			init_second_stage_executed);
-		on_post_fs_data(); // we keep this for old ksud
+		ksu_on_post_fs_data(); // we keep this for old ksud
 		stop_execve_hook();
 	}
 
@@ -468,7 +468,7 @@ bool ksu_is_safe_mode()
 	return false;
 }
 
-#ifdef CONFIG_KPROBES
+#if defined(CONFIG_KPROBES) && 0
 
 // https://elixir.bootlin.com/linux/v5.10.158/source/fs/exec.c#L1864
 static int execve_handler_pre(struct kprobe *p, struct pt_regs *regs)
@@ -598,7 +598,7 @@ static void do_stop_input_hook(struct work_struct *work)
 
 static void stop_vfs_read_hook()
 {
-#ifdef CONFIG_KPROBES
+#if defined(CONFIG_KPROBES) && 0
 	bool ret = schedule_work(&stop_vfs_read_work);
 	pr_info("unregister vfs_read kprobe: %d!\n", ret);
 #else
@@ -609,7 +609,7 @@ static void stop_vfs_read_hook()
 
 static void stop_execve_hook()
 {
-#ifdef CONFIG_KPROBES
+#if defined(CONFIG_KPROBES) && 0
 	bool ret = schedule_work(&stop_execve_hook_work);
 	pr_info("unregister execve kprobe: %d!\n", ret);
 #else
@@ -625,7 +625,7 @@ static void stop_input_hook()
 		return;
 	}
 	input_hook_stopped = true;
-#ifdef CONFIG_KPROBES
+#if defined(CONFIG_KPROBES) && 0
 	bool ret = schedule_work(&stop_input_hook_work);
 	pr_info("unregister input kprobe: %d!\n", ret);
 #else
@@ -637,7 +637,7 @@ static void stop_input_hook()
 // ksud: module support
 void ksu_ksud_init()
 {
-#ifdef CONFIG_KPROBES
+#if defined(CONFIG_KPROBES) && 0
 	int ret;
 
 	ret = register_kprobe(&execve_kp);
@@ -657,7 +657,7 @@ void ksu_ksud_init()
 
 void ksu_ksud_exit()
 {
-#ifdef CONFIG_KPROBES
+#if defined(CONFIG_KPROBES) && 0
 	unregister_kprobe(&execve_kp);
 	// this should be done before unregister vfs_read_kp
 	// unregister_kprobe(&vfs_read_kp);
