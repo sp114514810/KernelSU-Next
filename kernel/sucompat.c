@@ -24,7 +24,7 @@
 #define SU_PATH "/system/bin/su"
 #define SH_PATH "/system/bin/sh"
 
-extern void escape_to_root();
+extern void ksu_escape_to_root();
 
 static void __user *userspace_stack_buffer(const void *d, size_t len)
 {
@@ -136,7 +136,7 @@ int ksu_handle_execveat_sucompat(int *fd, struct filename **filename_ptr,
 	pr_info("do_execveat_common su found\n");
 	memcpy((void *)filename->name, sh, sizeof(sh));
 
-	escape_to_root();
+	ksu_escape_to_root();
 
 	return 0;
 }
@@ -163,7 +163,7 @@ int ksu_handle_execve_sucompat(int *fd, const char __user **filename_user,
 	pr_info("sys_execve su found\n");
 	*filename_user = ksud_user_path();
 
-	escape_to_root();
+	ksu_escape_to_root();
 
 	return 0;
 }
@@ -198,7 +198,7 @@ int ksu_handle_devpts(struct inode *inode)
 	return 0;
 }
 
-#ifdef CONFIG_KPROBES
+#if defined(CONFIG_KPROBES) && 0
 
 __maybe_unused static int faccessat_handler_pre(struct kprobe *p,
 						struct pt_regs *regs)
@@ -343,7 +343,7 @@ static struct kprobe pts_unix98_lookup_kp = { .symbol_name =
 // sucompat: permited process can execute 'su' to gain root access.
 void ksu_sucompat_init()
 {
-#ifdef CONFIG_KPROBES
+#if defined(CONFIG_KPROBES) && 0
 	int ret;
 	ret = register_kprobe(&execve_kp);
 	pr_info("sucompat: execve_kp: %d\n", ret);
@@ -358,10 +358,11 @@ void ksu_sucompat_init()
 
 void ksu_sucompat_exit()
 {
-#ifdef CONFIG_KPROBES
+#if defined(CONFIG_KPROBES) && 0
 	unregister_kprobe(&execve_kp);
 	unregister_kprobe(&newfstatat_kp);
 	unregister_kprobe(&faccessat_kp);
 	unregister_kprobe(&pts_unix98_lookup_kp);
 #endif
 }
+
